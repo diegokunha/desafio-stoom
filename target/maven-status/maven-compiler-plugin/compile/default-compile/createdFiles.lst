@@ -1,0 +1,9 @@
+com\deeconsulting\desafiostoom\repositories\AddressRepository.class
+com\deeconsulting\desafiostoom\data\vo\AddressVO.class
+com\deeconsulting\desafiostoom\entity\Address.class
+com\deeconsulting\desafiostoom\exceptions\ExceptionResponse.class
+com\deeconsulting\desafiostoom\controllers\AddressController.class
+com\deeconsulting\desafiostoom\exceptions\AddressExceptionHandler.class
+com\deeconsulting\desafiostoom\services\AddressService.class
+com\deeconsulting\desafiostoom\DesafioStoomApplication.class
+com\deeconsulting\desafiostoom\exceptions\ResourceNotFoundException.class
