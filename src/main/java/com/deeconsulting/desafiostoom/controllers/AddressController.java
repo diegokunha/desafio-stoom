@@ -43,24 +43,19 @@ import com.google.maps.model.GeocodingResult;
 @RequestMapping("/desafio-stoom/address")
 public class AddressController {
 
-	private final AddressService service;
-	private final PagedResourcesAssembler<AddressVO> assembler;
-	
 	@Autowired
-	public AddressController(AddressService service, PagedResourcesAssembler<AddressVO> assembler) {
-		super();
-		this.service = service;
-		this.assembler = assembler;
-	}
+	private AddressService service;
+	@Autowired
+	private PagedResourcesAssembler<AddressVO> assembler;
 	
-	@GetMapping(value = "/{id}", produces = {"application/json", "application/xml"})
+	@GetMapping(value = "/detailById/{id}", produces = {"application/json", "application/xml"})
 	public AddressVO findByID(@PathVariable("id") Long id) {
 		AddressVO addressVO = service.findById(id);
 		addressVO.add(linkTo(methodOn(AddressController.class).findByID(id)).withSelfRel());
 		return addressVO;
 	}
 	
-	@GetMapping(produces = {"application/json", "application/xml"})
+	@GetMapping(value = "/list", produces = {"application/json", "application/xml"})
 	public ResponseEntity<?> findAll(@RequestParam(value = "page", defaultValue = "0") int page,
 			@RequestParam(value = "limit", defaultValue = "12") int limit,
 			@RequestParam(value = "direction", defaultValue = "asc") String direction) {
@@ -77,7 +72,7 @@ public class AddressController {
 		return new ResponseEntity<>(pagedModel, HttpStatus.OK);
 	}
 	
-	@PostMapping(produces = {"application/json", "application/xml"},
+	@PostMapping(value = "/create", produces = {"application/json", "application/xml"},
 			     consumes = {"application/json", "application/xml"})
 	public AddressVO create(@Valid @RequestBody AddressVO addressVO) throws ApiException, InterruptedException, IOException {
 		
@@ -92,8 +87,8 @@ public class AddressController {
 		return addressVORetorno;
 	}
 	
-	@PutMapping(produces = {"application/json", "application/xml"},
-		     consumes = {"application/json", "application/xml"})
+	@PutMapping(value = "/update", produces = {"application/json", "application/xml"},
+		     	consumes = {"application/json", "application/xml"})
 	public ResponseEntity<?> update(@Valid @RequestBody AddressVO addressVO) throws ApiException, InterruptedException, IOException {
 		if(!service.existsById(addressVO.getId())) {
 			return new ResponseEntity(new Message("No records found for this ID!"), HttpStatus.BAD_REQUEST);
@@ -110,7 +105,7 @@ public class AddressController {
 		return new ResponseEntity(addressVORetorno, HttpStatus.OK);
 	}
 	
-	@DeleteMapping("/{id}")
+	@DeleteMapping("/delete/{id}")
 	public ResponseEntity<?> delete(@PathVariable("id") Long id){
 		if(!service.existsById(id))
             return new ResponseEntity(new Message("No records found for this ID!"), HttpStatus.NOT_FOUND);

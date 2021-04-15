@@ -1,39 +1,30 @@
 package com.deeconsulting.desafiostoom;
 
-import java.io.IOException;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
+import org.junit.Before;
 import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 
-import com.deeconsulting.desafiostoom.data.vo.URL;
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
-import com.google.maps.GeoApiContext;
-import com.google.maps.GeocodingApi;
-import com.google.maps.errors.ApiException;
-import com.google.maps.model.GeocodingResult;
+import com.deeconsulting.desafiostoom.controllers.AddressController;
 
 @SpringBootTest
-class DesafioStoomApplicationTests{
+class DesafioStoomApplicationTests {
+	
+	@Autowired
+	private AddressController controller;
+	
+	@Before
+	public void setUp() {
+	}
 	
 	@Test
-	void contextLoads() throws ApiException, InterruptedException, IOException {
-		
-		String number = "95";
-		String streetName = "Rua São Pedro";
-		String city = "Nova Iguaçu";
-		String state = "RJ";
-		
-		GeoApiContext context = new GeoApiContext.Builder()
-			    .apiKey("AIzaSyCj0cY2yEvVfYhAaTz3-P2MW-YRKmhz5Uw")
-			    .build();
-			GeocodingResult[] results =  GeocodingApi.geocode(context,
-					  URL.decode(number) + "+" 
-					+ URL.decode(streetName) + ",+" 
-					+ URL.decode(city) + ",+" 
-					+ URL.decode(state)).await();
-			Gson gson = new GsonBuilder().setPrettyPrinting().create();
-			System.out.println(gson.toJson(results[0].geometry.location.lat));
+	public void testGETAddressController() throws Exception {
+		ResponseEntity<?> findAll = controller.findAll(0, 12, "asc");
+		assertEquals(HttpStatus.OK, findAll.getStatusCode());
 	}
 	
 }
