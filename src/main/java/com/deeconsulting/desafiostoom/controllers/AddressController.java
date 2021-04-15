@@ -3,6 +3,8 @@ package com.deeconsulting.desafiostoom.controllers;
 import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
 import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
 
+import java.io.IOException;
+
 import javax.validation.Valid;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -28,7 +30,14 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.deeconsulting.desafiostoom.data.vo.AddressVO;
 import com.deeconsulting.desafiostoom.data.vo.Message;
+import com.deeconsulting.desafiostoom.data.vo.URL;
 import com.deeconsulting.desafiostoom.services.AddressService;
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import com.google.maps.GeoApiContext;
+import com.google.maps.GeocodingApi;
+import com.google.maps.errors.ApiException;
+import com.google.maps.model.GeocodingResult;
 
 @RestController
 @RequestMapping("/desafio-stoom/address")
@@ -70,7 +79,13 @@ public class AddressController {
 	
 	@PostMapping(produces = {"application/json", "application/xml"},
 			     consumes = {"application/json", "application/xml"})
-	public AddressVO create(@Valid @RequestBody AddressVO addressVO) {
+	public AddressVO create(@Valid @RequestBody AddressVO addressVO) throws ApiException, InterruptedException, IOException {
+		
+		if((addressVO.getLatitude() == null || (addressVO.getLatitude().isEmpty())) &&
+				(addressVO.getLongitude() == null || (addressVO.getLongitude().isEmpty()))) {
+			getGeocoading(addressVO);
+		}
+		
 		AddressVO addressVORetorno = service.create(addressVO);
 		addressVORetorno.add(linkTo(methodOn(AddressController.class).findByID(addressVORetorno.getId())).withSelfRel());
 		
@@ -79,9 +94,14 @@ public class AddressController {
 	
 	@PutMapping(produces = {"application/json", "application/xml"},
 		     consumes = {"application/json", "application/xml"})
-	public ResponseEntity<?> update(@Valid @RequestBody AddressVO addressVO) {
+	public ResponseEntity<?> update(@Valid @RequestBody AddressVO addressVO) throws ApiException, InterruptedException, IOException {
 		if(!service.existsById(addressVO.getId())) {
 			return new ResponseEntity(new Message("No records found for this ID!"), HttpStatus.BAD_REQUEST);
+		}
+		
+		if((addressVO.getLatitude() == null || (addressVO.getLatitude().isEmpty())) &&
+				(addressVO.getLongitude() == null || (addressVO.getLongitude().isEmpty()))) {
+			getGeocoading(addressVO);
 		}
 		
 		AddressVO addressVORetorno = service.update(addressVO);
@@ -97,5 +117,20 @@ public class AddressController {
 		
 		service.delete(id);
 		return new ResponseEntity(new Message("Address deleted successfully!"), HttpStatus.OK);
+	}
+
+	private void getGeocoading(AddressVO addressVO) throws ApiException, InterruptedException, IOException {
+		GeoApiContext context = new GeoApiContext.Builder()
+			    .apiKey("AIzaSyCj0cY2yEvVfYhAaTz3-P2MW-YRKmhz5Uw")
+			    .build();
+			GeocodingResult[] results =  GeocodingApi.geocode(context,
+					  URL.decode(addressVO.getNumber()) + "+" 
+					+ URL.decode(addressVO.getStreetName()) + ",+" 
+					+ URL.decode(addressVO.getCity()) + ",+" 
+					+ URL.decode(addressVO.getState())).await();
+			Gson gson = new GsonBuilder().setPrettyPrinting().create();
+			
+			addressVO.setLatitude(gson.toJson(results[0].geometry.location.lat));
+			addressVO.setLongitude(gson.toJson(results[0].geometry.location.lng));
 	}
 }
